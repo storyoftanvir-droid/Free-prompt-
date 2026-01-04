@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>App Store</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ============================
+           1. CSS VARIABLES & RESET
+           ============================ */
+        :root {
+            /* Colors */
+            --primary: #0066ff;
+            --primary-dark: #0052cc;
+            --primary-gradient: linear-gradient(135deg, #0066ff 0%, #00c6ff 100%);
+            --secondary: #eef2f6;
+            --bg-body: #f8f9fa;
+            --bg-white: #ffffff;
+            --text-dark: #1e293b;
+            --text-gray: #64748b;
+            --border-light: #e2e8f0;
+            --danger: #ff7675; /* Added for Maintenance Icon */
+            
+            /* Shadows */
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
+            --shadow-md: 0 8px 24px rgba(0,0,0,0.08);
+            --shadow-lg: 0 12px 40px rgba(0,0,0,0.12);
+            --glow-primary: 0 0 20px rgba(0, 102, 255, 0.3);
+
+            /* Spacing */
+            --header-height: 112px; /* Top Bar + Marquee */
+            --nav-height: 70px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; outline: none; -webkit-tap-highlight-color: transparent; }
+        
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--bg-body); 
+            color: var(--text-dark);
+            padding-top: var(--header-height);
+            padding-bottom: 90px;
+            overflow-x: hidden;
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+        /* ============================
+           UTILITY CLASS
+           ============================ */
+        .hidden { display: none !important; }
+
+        /* ============================
+           2. ANIMATIONS (Keyframes)
+           ============================ */
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes scaleIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); box-shadow: 0 0 0 0 rgba(0, 136, 204, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 15px rgba(0, 136, 204, 0); }
+            100% { transform: scale(0.8); box-shadow: 0 0 0 0 rgba(0, 136, 204, 0); }
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+        }
+
+        /* Click Ripple Effect */
+        .ripple { position: relative; overflow: hidden; transform: translate3d(0, 0, 0); }
+        .ripple:after {
+            content: ""; display: block; position: absolute; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none;
+            background-image: radial-gradient(circle, #fff 10%, transparent 10.01%);
+            background-repeat: no-repeat; background-position: 50%;
+            transform: scale(10, 10); opacity: 0; transition: transform .5s, opacity 1s;
+        }
+        .ripple:active:after { transform: scale(0, 0); opacity: 0.3; transition: 0s; }
+
+        /* ============================
+           3. HEADER & NAVIGATION
+           ============================ */
+        .fixed-header {
+            position: fixed; top: 0; left: 0; right: 0;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            box-shadow: var(--shadow-sm);
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .top-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px 16px; height: 70px;
+        }
+
+        .search-trigger {
+            flex: 1;
+            background: #f1f5f9;
+            height: 46px;
+            border-radius: 50px;
+            display: flex; align-items: center;
+            padding: 0 20px;
+            margin-right: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+        .search-trigger:active { transform: scale(0.98); background: #e2e8f0; }
+        .search-trigger:hover { border-color: var(--primary); background: #fff; box-shadow: 0 2px 10px rgba(0,102,255,0.1); }
+        
+        .search-icon { width: 20px; height: 20px; fill: var(--text-gray); margin-right: 10px; flex-shrink: 0; }
+        .search-placeholder { color: var(--text-gray); font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        .btn-about {
+            background: var(--primary-gradient);
+            color: white; border: none;
+            height: 40px; padding: 0 20px;
+            border-radius: 50px;
+            font-weight: 600; font-size: 13px; font-family: 'Poppins', sans-serif;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 102, 255, 0.25);
+            transition: transform 0.2s;
+            white-space: nowrap;
+        }
+        .btn-about:active { transform: scale(0.95); }
+
+        .marquee-container {
+            height: 42px;
+            background: #eef2ff;
+            display: flex; align-items: center;
+            overflow: hidden;
+            border-bottom: 1px solid var(--border-light);
+            color: var(--primary-dark);
+            font-weight: 500; font-size: 13px;
+        }
+        .marquee-content {
+            white-space: nowrap;
+            display: inline-block;
+            padding-left: 100%;
+            animation: scroll 20s linear infinite;
+        }
+        @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
+
+        /* ============================
+           4. PRODUCT GRID & CARDS
+           ============================ */
+        .app-container {
+            padding: 16px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--bg-white);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-light);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            animation: slideUp 0.5s ease-out forwards;
+            position: relative;
+        }
+        
+        .card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); border-color: #cbd5e1; }
+
+        .card-image-wrapper {
+            width: 100%;
+            padding-top: 56.25%; /* 16:9 Aspect Ratio */
+            position: relative;
+            background: #e2e8f0;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        
+        .card-img {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            object-fit: cover; transition: transform 0.6s ease;
+        }
+        .card:hover .card-img { transform: scale(1.05); }
+
+        .play-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.2);
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; transition: 0.3s;
+        }
+        .card-image-wrapper:hover .play-overlay { opacity: 1; }
+        .play-icon { width: 50px; height: 50px; fill: white; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); }
+
+        .card-body { padding: 18px; display: flex; flex-direction: column; }
+        
+        .card-title {
+            font-size: 16px; font-weight: 700; color: var(--text-dark);
+            margin-bottom: 12px; line-height: 1.4;
+            font-family: 'Poppins', sans-serif;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+        }
+
+        .btn-download {
+            margin-top: auto;
+            background: var(--primary-gradient);
+            color: white; border: none;
+            padding: 12px 0;
+            width: 100%; border-radius: 12px;
+            font-weight: 600; font-size: 14px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 102, 255, 0.2);
+            transition: 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-download:active { transform: scale(0.97); }
+        .download-icon { width: 18px; height: 18px; fill: white; }
+
+        /* ============================
+           5. SKELETON LOADERS
+           ============================ */
+        .skeleton {
+            background: #f6f7f8;
+            background-image: linear-gradient(to right, #f6f7f8 0%, #edeef1 20%, #f6f7f8 40%, #f6f7f8 100%);
+            background-repeat: no-repeat;
+            background-size: 800px 100%;
+            display: inline-block;
+            position: relative;
+            animation: shimmer 1s infinite linear forwards;
+        }
+        .sk-card { height: 280px; border-radius: 20px; background: white; border: 1px solid var(--border-light); }
+        .sk-img { height: 160px; width: 100%; border-radius: 20px 20px 0 0; }
+        .sk-txt { height: 20px; width: 80%; margin: 20px 20px 10px; border-radius: 4px; }
+        .sk-btn { height: 40px; margin: 10px 20px 20px; border-radius: 12px; }
+
+        /* ============================
+           6. SEARCH OVERLAY
+           ============================ */
+        .search-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-white);
+            z-index: 2000;
+            transform: translateX(100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+            display: flex; flex-direction: column;
+        }
+        .search-overlay.active { transform: translateX(0); }
+
+        .search-header {
+            display: flex; align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid var(--border-light);
+            background: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .back-btn {
+            background: none; border: none; padding: 10px;
+            cursor: pointer; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--text-dark); flex-shrink: 0;
+        }
+        .back-btn:active { background: #f1f5f9; }
+
+        .search-input-real {
+            flex-grow: 1;
+            border: none;
+            font-size: 16px;
+            margin: 0 15px;
+            height: 40px;
+            color: var(--text-dark);
+            font-weight: 500;
+            background: transparent;
+        }
+
+        .clear-btn {
+            background: #f1f5f9; border: none; width: 30px; height: 30px;
+            border-radius: 50%; color: var(--text-gray);
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            font-size: 14px; flex-shrink: 0;
+        }
+
+        .search-body { padding: 20px; overflow-y: auto; flex: 1; }
+        
+        .history-label {
+            font-size: 12px; text-transform: uppercase; letter-spacing: 1px;
+            color: var(--text-gray); font-weight: 700; margin-bottom: 15px;
+        }
+
+        .tags-container { display: flex; flex-wrap: wrap; gap: 10px; }
+        .tag {
+            background: white; border: 1px solid var(--border-light);
+            padding: 8px 16px; border-radius: 20px;
+            font-size: 14px; color: var(--text-dark);
+            cursor: pointer; transition: 0.2s;
+            display: flex; align-items: center; gap: 5px;
+        }
+        .tag:active { background: var(--primary); color: white; border-color: var(--primary); }
+        .tag svg { width: 14px; height: 14px; fill: currentColor; opacity: 0.6; }
+
+        /* ============================
+           7. TELEGRAM FAB & BOTTOM NAV
+           ============================ */
+        .fab-telegram {
+            position: fixed; bottom: 100px; right: 20px;
+            width: 60px; height: 60px;
+            z-index: 900; cursor: pointer;
+            transition: transform 0.3s;
+            background-image: url('https://i.postimg.cc/mkQSh8pq/telegram-logo-telegram-icon-transparent-telegram-icon-rounded-free-png.png');
+            background-size: cover;
+            background-position: center;
+            border-radius: 50%;
+            box-shadow: 0 10px 25px rgba(0, 136, 204, 0.4);
+            animation: pulse-ring 2s infinite;
+        }
+        .fab-telegram:active { transform: scale(0.9); }
+
+        .bottom-nav {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            width: 90%; max-width: 400px;
+            height: 64px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            border-radius: 32px;
+            display: flex; justify-content: space-around; align-items: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.5);
+            z-index: 800;
+        }
+
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            width: 60px; color: #94a3b8; cursor: pointer; transition: 0.3s;
+        }        
+        .nav-item.active { color: var(--primary); transform: translateY(-2px); }
+        .nav-icon { width: 24px; height: 24px; fill: currentColor; margin-bottom: 4px; transition: 0.3s; }
+        .nav-text { font-size: 10px; font-weight: 600; }
+
+        /* ============================
+           8. VIDEO PLAYER
+           ============================ */
+        .video-wrapper {
+            position: relative; padding-bottom: 56.25%; height: 0;
+            background: #000; border-radius: 16px; margin-bottom: 20px;
+            overflow: hidden; box-shadow: var(--shadow-md);
+        }
+        .video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+
+        /* ============================
+           9. MODAL & MAINTENANCE
+           ============================ */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); z-index: 3000;
+            backdrop-filter: blur(5px);
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none; transition: 0.3s;
+        }
+        .modal-overlay.open { opacity: 1; pointer-events: auto; }
+        .modal-content {
+            background: white; width: 90%; max-width: 350px;
+            border-radius: 20px; overflow: hidden; position: relative;
+            transform: scale(0.8); transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        .modal-overlay.open .modal-content { transform: scale(1); }
+        .modal-close {
+            position: absolute; top: 10px; right: 10px;
+            background: rgba(0,0,0,0.5); color: white;
+            width: 32px; height: 32px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-weight: bold; border: 2px solid white;
+        }
+
+        /* NEW: Maintenance Screen Style */
+        #maintenance-view {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-body); z-index: 9999;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 40px; text-align: center;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="maintenance-view" class="hidden">
+        <svg style="width:80px;height:80px;fill:var(--danger);margin-bottom:20px;" viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+        </svg>
+        <h2 style="font-size:24px; color:var(--text-dark); margin-bottom:10px; font-weight:700;">System Offline</h2>
+        <p style="color:var(--text-gray); font-size:14px;">We are currently performing maintenance. Please check back later.</p>
+    </div>
+
+    <header class="fixed-header">
+        <div class="top-row">
+            <div class="search-trigger ripple" onclick="openSearch()">
+                <svg class="search-icon" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                <span class="search-placeholder"></span>
+            </div>
+            <button class="btn-about ripple" onclick="toggleModal(true)">About Us</button>
+        </div>
+        <div class="marquee-container">
+            <div class="marquee-content" id="notice-text">Connecting to server...</div>
+        </div>
+    </header>
+    
+    <main class="app-container" id="main-content">
+        
+        <div id="loading-state" class="grid">
+            <div class="skeleton sk-card"><div class="skeleton sk-img"></div><div class="skeleton sk-txt"></div><div class="skeleton sk-btn"></div></div>
+            <div class="skeleton sk-card"><div class="skeleton sk-img"></div><div class="skeleton sk-txt"></div><div class="skeleton sk-btn"></div></div>
+            <div class="skeleton sk-card"><div class="skeleton sk-img"></div><div class="skeleton sk-txt"></div><div class="skeleton sk-btn"></div></div>
+            <div class="skeleton sk-card"><div class="skeleton sk-img"></div><div class="skeleton sk-txt"></div><div class="skeleton sk-btn"></div></div>
+        </div>
+
+        <div id="product-grid" class="grid hidden"></div>
+        
+        <div id="video-section" class="hidden"></div>
+
+    </main>
+
+    <div id="search-view" class="search-overlay">
+        <div class="search-header">
+            <button class="back-btn ripple" onclick="closeSearch()">
+                <svg style="width:24px;height:24px;fill:currentColor" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+            </button>
+            <input type="text" id="search-input" class="search-input-real" placeholder="" autocomplete="off">
+            <button class="clear-btn ripple" onclick="clearSearch()">✕</button>
+        </div>
+        <div class="search-body">
+            <div id="history-container">
+                <div class="history-label">Recent Searches</div>
+                <div class="tags-container" id="history-tags">
+                    </div>
+            </div>
+            <div id="search-results" class="grid" style="margin-top:20px;"></div>
+        </div>
+    </div>
+
+    <div id="fab-telegram" class="fab-telegram hidden" title="Join Support"></div>
+
+    <div id="about-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-close" onclick="toggleModal(false)">✕</div>
+            <img src="https://i.postimg.cc/fbfFmdjX/IMG-20260104-091626.jpg" style="width:100%; display:block;" alt="About">
+        </div>
+    </div>
+
+    <nav class="bottom-nav">
+        <div class="nav-item active ripple" id="nav-home" onclick="switchTab('HOME')">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            <span class="nav-text">Home</span>
+        </div>
+        <div class="nav-item ripple" id="nav-how" onclick="switchTab('HOW')">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>
+            <span class="nav-text">How To</span>
+        </div>
+    </nav>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <script>
+        // --- 1. CONFIGURATION ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyADDJl4B4cckI20WdMr2srsGgvY0-7fhbM",
+            authDomain: "promt-now.firebaseapp.com",
+            databaseURL: "https://promt-now-default-rtdb.firebaseio.com",
+            projectId: "promt-now",
+            storageBucket: "promt-now.firebasestorage.app",
+            messagingSenderId: "13080932976",
+            appId: "1:13080932976:web:b3edbda45cbf869ac4bab5"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // --- 2. STATE & CACHE MANAGEMENT ---
+        const STATE = {
+            products: [],
+            videos: [],
+            history: JSON.parse(localStorage.getItem('search_history_v2') || '[]'),
+            cacheProducts: JSON.parse(localStorage.getItem('cache_products') || '[]')
+        };
+
+        // --- 3. INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // A. INSTANT LOAD FROM CACHE
+            if(STATE.cacheProducts.length > 0) {
+                STATE.products = STATE.cacheProducts;
+                renderProducts(STATE.products);
+                document.getElementById('loading-state').classList.add('hidden');
+                document.getElementById('product-grid').classList.remove('hidden');
+            }
+
+            // B. FETCH FRESH DATA
+            db.ref('products').on('value', snap => {
+                const val = snap.val();
+                STATE.products = val ? Object.values(val).sort((a,b) => a.order - b.order) : [];
+                localStorage.setItem('cache_products', JSON.stringify(STATE.products));
+
+                if(document.getElementById('nav-home').classList.contains('active')) {
+                    renderProducts(STATE.products);
+                    document.getElementById('loading-state').classList.add('hidden');
+                    document.getElementById('product-grid').classList.remove('hidden');
+                }
+            });
+
+            // C. FETCH CONFIG & MAINTENANCE CHECK
+            db.ref('config').on('value', snap => {
+                const config = snap.val() || {};
+
+                // --- NEW: MAINTENANCE LOGIC ---
+                const isMaintenance = config.maintenanceMode === true;
+                const maintView = document.getElementById('maintenance-view');
+                const appHeader = document.querySelector('.fixed-header');
+                const appMain = document.getElementById('main-content');
+                const appNav = document.querySelector('.bottom-nav');
+                const fab = document.getElementById('fab-telegram');
+
+                if(isMaintenance) {
+                    maintView.classList.remove('hidden');
+                    appHeader.classList.add('hidden');
+                    appMain.classList.add('hidden');
+                    appNav.classList.add('hidden');
+                    fab.classList.add('hidden');
+                    return; // Stop processing further if maintenance is on
+                } else {
+                    maintView.classList.add('hidden');
+                    appHeader.classList.remove('hidden');
+                    appMain.classList.remove('hidden');
+                    appNav.classList.remove('hidden');
+                    // FAB visibility depends on link existence, handled below
+                }
+                
+                // Update Marquee
+                if(config.scrollingNotice) {
+                    document.getElementById('notice-text').innerText = config.scrollingNotice;
+                }
+
+                // Update Telegram FAB
+                if(config.supportLink) {
+                    fab.classList.remove('hidden');
+                    fab.onclick = () => window.open(config.supportLink, '_blank');
+                } else {
+                    fab.classList.add('hidden');
+                }
+            });
+
+            // D. FETCH VIDEOS
+            db.ref('howTo').on('value', snap => {
+                STATE.videos = snap.val() ? Object.values(snap.val()).sort((a,b) => a.order - b.order) : [];
+                if(document.getElementById('nav-how').classList.contains('active')) {
+                    renderVideos();
+                }
+            });
+        });
+
+        // --- 4. RENDER FUNCTIONS ---
+        function renderProducts(list, isSearch = false) {
+            const container = isSearch ? document.getElementById('search-results') : document.getElementById('product-grid');
+            container.innerHTML = '';
+
+            if (list.length === 0) {
+                container.innerHTML = `
+                    <div style="grid-column:1/-1; text-align:center; padding:40px; color:#94a3b8;">
+                        <svg style="width:48px;height:48px;fill:#cbd5e1;margin-bottom:10px;" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                        <div style="font-weight:500;">No products found</div>
+                    </div>`;
+                return;
+            }
+
+            list.forEach((p, index) => {
+                const card = document.createElement('div');
+                card.className = 'card ripple';
+                card.style.animationDelay = `${index * 0.05}s`;
+                const videoAction = p.videoLink ? `onclick="window.open('${p.videoLink}', '_blank')"` : '';
+
+                card.innerHTML = `
+                    <div class="card-image-wrapper" ${videoAction}>
+                        <img src="${p.image}" class="card-img" loading="lazy" onerror="this.src='https://via.placeholder.com/400x225?text=No+Preview'">
+                        ${p.videoLink ? '<div class="play-overlay"><svg class="play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>' : ''}
+                    </div>
+                    <div class="card-body">
+                        <div class="card-title">${p.title}</div>
+                        <button class="btn-download ripple" onclick="window.open('${p.downloadLink}', '_blank')">
+                            ${p.btnText || 'Download'}
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderVideos() {
+            const container = document.getElementById('video-section');
+            container.innerHTML = '';
+            
+            if (STATE.videos.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding:50px; color:#94a3b8;">No tutorials available yet.</div>';
+                return;
+            }
+
+            STATE.videos.forEach(v => {
+                let url = v.url;
+                if (url.includes('youtu')) {
+                    const id = url.split('v=')[1] || url.split('/').pop();
+                    url = `https://www.youtube.com/embed/${id.split('&')[0]}`;
+                }
+                const wrapper = document.createElement('div');
+                wrapper.className = 'video-wrapper';
+                wrapper.innerHTML = `<iframe src="${url}" allowfullscreen></iframe>`;
+                container.appendChild(wrapper);
+            });
+        }
+
+        // --- 5. SEARCH & HISTORY ---
+        function openSearch() {
+            document.getElementById('search-view').classList.add('active');
+            renderHistory();
+            setTimeout(() => document.getElementById('search-input').focus(), 300);
+        }
+
+        function closeSearch() {
+            document.getElementById('search-view').classList.remove('active');
+        }
+
+        function clearSearch() {
+            document.getElementById('search-input').value = '';
+            document.getElementById('search-results').innerHTML = '';
+            document.getElementById('history-container').style.display = 'block';
+        }
+
+        const searchInput = document.getElementById('search-input');
+        searchInput.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const historyBox = document.getElementById('history-container');
+            const resultBox = document.getElementById('search-results');
+
+            if (!term) {
+                historyBox.style.display = 'block';
+                resultBox.innerHTML = '';
+                return;
+            }
+
+            historyBox.style.display = 'none';
+            const matches = STATE.products.filter(p => p.title.toLowerCase().includes(term));
+            renderProducts(matches, true);
+
+            if (matches.length > 0 && term.length > 2) {
+                addToHistory(term);
+            }
+        });
+
+        function addToHistory(term) {
+            const cleanTerm = term.trim();
+            if(!cleanTerm) return;
+            const existingIndex = STATE.history.indexOf(cleanTerm);
+            if (existingIndex > -1) {
+                STATE.history.splice(existingIndex, 1);
+            }
+            STATE.history.unshift(cleanTerm);
+            if (STATE.history.length > 10) STATE.history.pop();
+            localStorage.setItem('search_history_v2', JSON.stringify(STATE.history));
+        }
+
+        function renderHistory() {
+            const container = document.getElementById('history-tags');
+            container.innerHTML = '';
+            if (STATE.history.length === 0) {
+                container.innerHTML = '<span style="color:#94a3b8; font-size:13px;">No recent searches</span>';
+                return;
+            }
+            STATE.history.forEach(term => {
+                const tag = document.createElement('div');
+                tag.className = 'tag ripple';
+                tag.innerHTML = `
+                    <svg viewBox="0 0 24 24"><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
+                    ${term}
+                `;
+                tag.onclick = () => {
+                    searchInput.value = term;
+                    searchInput.dispatchEvent(new Event('input'));
+                };
+                container.appendChild(tag);
+            });
+        }
+
+        // --- 6. NAVIGATION ---
+        function switchTab(tab) {
+            const homeBtn = document.getElementById('nav-home');
+            const howBtn = document.getElementById('nav-how');
+            const homeView = document.getElementById('product-grid');
+            const videoView = document.getElementById('video-section');
+            const loading = document.getElementById('loading-state');
+            const fab = document.getElementById('fab-telegram');
+
+            if (tab === 'HOME') {
+                homeBtn.classList.add('active');
+                howBtn.classList.remove('active');
+                videoView.classList.add('hidden');
+                fab.style.display = 'block'; 
+
+                if (STATE.products.length > 0) {
+                    homeView.classList.remove('hidden');
+                    loading.classList.add('hidden');
+                } else {
+                    renderProducts([]); 
+                    loading.classList.remove('hidden');
+                }
+            } else {
+                homeBtn.classList.remove('active');
+                howBtn.classList.add('active');
+                homeView.classList.add('hidden');
+                loading.classList.add('hidden');
+                videoView.classList.remove('hidden');
+                fab.style.display = 'none';
+                renderVideos();
+            }
+        }
+
+        function toggleModal(show) {
+            const modal = document.getElementById('about-modal');
+            if (show) modal.classList.add('open');
+            else modal.classList.remove('open');
+        }
+
+    </script>
+</body>
+</html>
