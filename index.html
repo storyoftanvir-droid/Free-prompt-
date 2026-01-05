@@ -22,7 +22,7 @@
             --text-dark: #1e293b;
             --text-gray: #64748b;
             --border-light: #e2e8f0;
-            --danger: #ff7675; /* Added for Maintenance Icon */
+            --danger: #ff7675;
             
             /* Shadows */
             --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
@@ -51,9 +51,7 @@
         ::-webkit-scrollbar-track { background: #f1f1f1; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 
-        /* ============================
-           UTILITY CLASS
-           ============================ */
+        /* Utility Class */
         .hidden { display: none !important; }
 
         /* ============================
@@ -381,7 +379,7 @@
             cursor: pointer; font-weight: bold; border: 2px solid white;
         }
 
-        /* NEW: Maintenance Screen Style */
+        /* Maintenance Screen Style */
         #maintenance-view {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--bg-body); z-index: 9999;
@@ -416,6 +414,18 @@
     
     <main class="app-container" id="main-content">
         
+        <div style="display:flex; justify-content:center; margin: 10px 0 20px 0; width:100%; overflow:hidden;">
+            <script>
+                atOptions = {
+                    'key' : '7d6474bb9053e503c2aed1679a0d70c4',
+                    'format' : 'iframe',
+                    'height' : 50,
+                    'width' : 320,
+                    'params' : {}
+                };
+            </script>
+            <script src="https://www.highperformanceformat.com/7d6474bb9053e503c2aed1679a0d70c4/invoke.js"></script>
+        </div>
         <div id="loading-state" class="grid">
             <div class="skeleton sk-card"><div class="skeleton sk-img"></div><div class="skeleton sk-txt"></div><div class="skeleton sk-btn"></div></div>
             <div class="skeleton sk-card"><div class="skeleton sk-img"></div><div class="skeleton sk-txt"></div><div class="skeleton sk-btn"></div></div>
@@ -521,7 +531,7 @@
             db.ref('config').on('value', snap => {
                 const config = snap.val() || {};
 
-                // --- NEW: MAINTENANCE LOGIC ---
+                // --- MAINTENANCE LOGIC ---
                 const isMaintenance = config.maintenanceMode === true;
                 const maintView = document.getElementById('maintenance-view');
                 const appHeader = document.querySelector('.fixed-header');
@@ -535,13 +545,12 @@
                     appMain.classList.add('hidden');
                     appNav.classList.add('hidden');
                     fab.classList.add('hidden');
-                    return; // Stop processing further if maintenance is on
+                    return; 
                 } else {
                     maintView.classList.add('hidden');
                     appHeader.classList.remove('hidden');
                     appMain.classList.remove('hidden');
                     appNav.classList.remove('hidden');
-                    // FAB visibility depends on link existence, handled below
                 }
                 
                 // Update Marquee
@@ -737,6 +746,10 @@
         }
 
     </script>
+
     <script src="https://pl28400142.effectivegatecpm.com/3f/4e/5a/3f4e5ad1fbcfd17aef33594daa3e599e.js"></script>
+
+    <script src="https://pl28393154.effectivegatecpm.com/5c/af/be/5cafbe6f282cdc019feb1235c9d991a5.js"></script>
+
 </body>
 </html>
